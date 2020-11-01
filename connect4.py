@@ -51,6 +51,11 @@ def intro_menu():
 	text = STAT_FONT.render("CONNECT 4", 1, (0,0,0))
 	screen.blit(text, (200, 100))
 
+	start_button = pygame.Rect(250, 175, 100, 50)
+	pygame.draw.rect(screen, GRAY, start_button)
+	text = STAT_FONT.render("Start", 1, (0,0,0))
+	screen.blit(text, (260, 185))
+
 	pygame.display.flip()
 	start = False
 	while not start:
@@ -63,9 +68,9 @@ def intro_menu():
 				if event.key==pygame.K_RETURN:
 					start = True
 
-		
-
-
+			elif event.type == pygame.MOUSEBUTTONDOWN:
+				if start_button.collidepoint(event.pos):
+					start = True
 
 def draw_board(board):
 
@@ -96,19 +101,36 @@ def draw_board(board):
 
     pygame.display.flip()
 
-def main(board):
+def game_loop(board):
 	pygame.display.set_caption("CONNECT4")
-	run = True
-	while run:
+	RUN = True
+	USER = True # true if user's turn
+	while RUN:
 		clock.tick(30)
+		draw_board(board)
+
 		for event in pygame.event.get():
 			if event.type == pygame.QUIT:
-				run = False
+				RUN = False
 				pygame.quit()
 				quit()
 
-		draw_board(board)
+			elif (event.type == pygame.MOUSEBUTTONDOWN) and (USER):
+				pos = pygame.mouse.get_pos()
+
+				col = pos[0] // (WIDTH + MARGIN)
+				row = pos[1] // (HEIGHT + MARGIN)
+
+				if board[row][col] == 0:
+					board[row][col] = 2 # paint yellow
+					USER = False
+
+			elif not USER:
+			# TODO: Implement AI
+				print("AI's turn")
+				USER = True
+				
 
 if __name__ == "__main__":
 	intro_menu()
-	main(board)
+	game_loop(board)
