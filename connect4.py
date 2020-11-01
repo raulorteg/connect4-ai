@@ -7,6 +7,8 @@ Created on Sun Nov 1 2020
 import numpy as np 
 import pygame
 import time
+import copy
+
 pygame.font.init()
 
 # board dimensions
@@ -102,7 +104,7 @@ def draw_board(board):
     pygame.display.flip()
 
 def game_loop(board):
-	pygame.display.set_caption("CONNECT4")
+	pygame.display.set_caption("Connect 4")
 	RUN = True
 	USER = True # true if user's turn
 	while RUN:
@@ -118,12 +120,25 @@ def game_loop(board):
 			elif (event.type == pygame.MOUSEBUTTONDOWN) and (USER):
 				pos = pygame.mouse.get_pos()
 
-				col = pos[0] // (WIDTH + MARGIN)
-				row = pos[1] // (HEIGHT + MARGIN)
+				col = pos[1] // (WIDTH + MARGIN)
+				row = pos[0] // (HEIGHT + MARGIN)
 
-				if board[row][col] == 0:
-					board[row][col] = 2 # paint yellow
+				temp = [slc[row] for slc in board]
+				temp.reverse()
+				valid = False
+				for idx, cell in enumerate(temp):
+					if cell == 0:
+						valid = True
+						temp[idx] = 2 # paint yellow
+						break
+
+				if valid:
+					temp.reverse()
+					for i in range(NUM_ROWS):
+						board[i][row] = temp[i]
+
 					USER = False
+
 
 			elif not USER:
 			# TODO: Implement AI
