@@ -109,15 +109,15 @@ def is_final(board):
 		for j in range(NUM_COLS-3):
 			in_row = board[i][j] + board[i][j+1]+ board[i][j+2] + board[i][j+3]
 			if in_row == 4: # ai wins
-				pattern = [board[i][j], board[i][j+1],
-				board[i][j+2], board[i][j+3]]
+				pattern = [(i,j), (i,j+1),
+				(i,j+2), (i,j+3)]
 				final = True
 				score = 1
 				return final, score, pattern
 
 			elif in_row == -4: # human wins
-				pattern = [board[i][j], board[i][j+1],
-				board[i][j+2], board[i][j+3]]
+				pattern = [(i,j), (i,j+1),
+				(i,j+2), (i,j+3)]
 				final = True
 				score = -1
 				return final, score, pattern
@@ -127,15 +127,15 @@ def is_final(board):
 		for i in range(NUM_ROWS-3):
 			in_col = board[i][j] + board[i+1][j]+ board[i+2][j] + board[i+3][j]
 			if in_col == 4: # ai wins
-				pattern = [board[i][j], board[i+1][j],
-				board[i+2][j], board[i+3][j]]
+				pattern = [(i,j), (i+1,j),
+				(i+2,j), (i+3,j)]
 				final = True
 				score = 1
 				return final, score, pattern
 
 			elif in_col == -4: # human wins
-				pattern = [board[i][j], board[i+1][j],
-				board[i+2][j], board[i+3][j]]
+				pattern = [(i,j), (i+1,j),
+				(i+2,j), (i+3,j)]
 				final = True
 				score = -1
 				return final, score, pattern
@@ -171,13 +171,14 @@ def available_moves(board):
 	return moves
 
 
-def minimax(board, USER, DEPTH):
+def minimax(board, user, DEPTH):
 	''' given board state return next best movement by exploring
 	DEPTH steps ahead '''
 	board2 = copy.deepcopy(board)
 	DEPTH -= 1
-	if DEPTH == -1:
-		final, score, _ = is_final(board2)
+
+	final, score, _ = is_final(board2)
+	if (final) or (DEPTH == -1):
 		return score
 		
 	else:
@@ -185,14 +186,14 @@ def minimax(board, USER, DEPTH):
 		next_moves = available_moves(board)
 		for move in next_moves:
 			board3 = copy.deepcopy(board2)
-			if USER:
+			if user:
 				x, y = move
 				board3[x][y] = -1
 				final, score, _ = is_final(board3)
 				if final:
 					scores.append(score)
 				else:
-					score = minimax(board3, not USER, DEPTH)
+					score = minimax(board=board3, user=not user, DEPTH=DEPTH)
 					scores.append(score)
 			else:
 				x, y = move
@@ -201,11 +202,11 @@ def minimax(board, USER, DEPTH):
 				if final:
 					scores.append(score)
 				else:
-					score = minimax(board=board3, USER=not USER, DEPTH=DEPTH)
+					score = minimax(board=board3, user=not user, DEPTH=DEPTH)
 					scores.append(score)
 
 
-		if USER:
+		if user:
 			return min(scores)
 		else:
 			return max(scores)
@@ -246,43 +247,23 @@ def game_loop(board):
 
 					USER = False
 
+
+			elif not USER:
 				final, score, pattern = is_final(board)
+
 				if final:
 					RUN = False
 					break
 
-
-			elif not USER:
-				print("AI's turn")
 				scores = []
 				next_moves = available_moves(board)
-				print("#"*20)
-				print(next_moves)
-				print("#"*20)
+
 				for move in next_moves:
 					board2 = copy.deepcopy(board)
 					x, y = move
-
-					# debugging, theres an issue with dimensions
-					#print(x,y)
-					#print()
-					#foo = []
-					#for i in range(NUM_ROWS):
-					#	print(foo)
-					#	foo = []
-					#	for j in range(NUM_COLS):
-					#		foo.append((i,j))
-					#print(foo)
-					#print()
-
-					#board2[x][y] = 1
-					#for foo in board2:
-					#	print(foo)
-
-					#print()
-					score = minimax(board=board2, USER=USER, DEPTH = 4)
+					board2[x][y] = 1 # paint red
+					score = minimax(board=board2, user=True, DEPTH = 3)
 					scores.append(score)
-				print(scores)
 
 				scores = np.array(scores)
 				idx = np.argmax(scores)
@@ -292,13 +273,45 @@ def game_loop(board):
 
 			final, score, pattern = is_final(board)
 			if final:
+				draw_board(board)
 				RUN = False
 				break
 
 	# finished game
-	# TODO: Display winner, show winning pattern, show end screen
+	EXIT = False
+	if final == -1: # Human
+		pygame.display.set_caption("Congratulations!")
+	elif final == 1: # AI
+		pygame.display.set_caption("Game Over")
+	else:
+		pygame.display.set_caption("Game finished")
 
-				
+	
+
+	while not EXIT:
+		clock.tick(60)
+		
+		for event in pygame.event.get():
+			if event.type == pygame.QUIT:
+				EXIT = True
+				pygame.quit()
+				quit()
+
+		# simple blinking animation
+		if final != 0: # not tie
+			for pair in pattern:
+				x, y = pair
+				board[x][y] = 0
+
+			draw_board(board)
+			time.sleep(0.3)
+
+			for pair in pattern:
+				x, y = pair
+				board[x][y] = final
+
+			draw_board(board)
+			time.sleep(0.3)				
 
 if __name__ == "__main__":
 	intro_menu()
