@@ -34,13 +34,6 @@ WIN_WIDTH = 600
 # font for text
 STAT_FONT = pygame.font.SysFont("comicsans", 50)
 
-board = []
-for row in range(NUM_ROWS):
-	board.append([])
-	for col in range(NUM_COLS):
-		board[row].append(0)
-
-
 pygame.init()
 clock = pygame.time.Clock()
 screen = pygame.display.set_mode([WIN_WIDTH, WIN_HEIGHT])
@@ -73,6 +66,7 @@ def intro_menu():
 			elif event.type == pygame.MOUSEBUTTONDOWN:
 				if start_button.collidepoint(event.pos):
 					start = True
+	return start
 
 def draw_board(board):
 
@@ -211,7 +205,14 @@ def minimax(board, user, DEPTH):
 		else:
 			return max(scores)
 
-def game_loop(board):
+def game_loop():
+
+	board = []
+	for row in range(NUM_ROWS):
+		board.append([])
+		for col in range(NUM_COLS):
+			board[row].append(0)
+
 	pygame.display.set_caption("Connect 4")
 	RUN = True
 	USER = True # true if user's turn
@@ -279,16 +280,8 @@ def game_loop(board):
 
 	# finished game
 	EXIT = False
-	if final == -1: # Human
-		pygame.display.set_caption("Congratulations!")
-	elif final == 1: # AI
-		pygame.display.set_caption("Game Over")
-	else:
-		pygame.display.set_caption("Game finished")
-
-	
-
-	while not EXIT:
+	animation_iter = 0
+	while (not EXIT) and (animation_iter < 5):
 		clock.tick(60)
 		
 		for event in pygame.event.get():
@@ -308,11 +301,53 @@ def game_loop(board):
 
 			for pair in pattern:
 				x, y = pair
-				board[x][y] = final
+				board[x][y] = score
 
 			draw_board(board)
-			time.sleep(0.3)				
+			time.sleep(0.3)
+
+		animation_iter += 1
+	return score
+
+def end_menu(score):
+	clock.tick(30)
+	screen.fill(WHITE)
+	pygame.display.set_caption("Press RETURN/ENTER to start")
+
+	if score == -1: # Human
+		text = STAT_FONT.render("You won!", 1, (0,0,0))
+	elif score == 1: # AI
+		text = STAT_FONT.render("GAME OVER", 1, (0,0,0))
+	else:
+		text = STAT_FONT.render("It's a Tie!", 1, (0,0,0))
+
+	screen.blit(text, (200, 100))
+
+	start_button = pygame.Rect(210, 155, 200, 50)
+	pygame.draw.rect(screen, GRAY, start_button)
+	text = STAT_FONT.render("Play again", 1, (0,0,0))
+	screen.blit(text, (220, 165))
+
+	pygame.display.flip()
+	start = False
+	while not start:
+		for event in pygame.event.get():
+			if event.type == pygame.QUIT:
+				pygame.quit()
+				quit()
+
+			elif event.type == pygame.KEYDOWN:
+				if event.key==pygame.K_RETURN:
+					start = True
+
+			elif event.type == pygame.MOUSEBUTTONDOWN:
+				if start_button.collidepoint(event.pos):
+					start = True
+
+	return start
 
 if __name__ == "__main__":
-	intro_menu()
-	game_loop(board)
+	start = intro_menu()
+	while start:
+		score = game_loop()
+		start = end_menu(score)
