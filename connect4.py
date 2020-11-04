@@ -121,20 +121,48 @@ def is_final(board):
 		for i in range(NUM_ROWS-3):
 			in_col = board[i][j] + board[i+1][j]+ board[i+2][j] + board[i+3][j]
 			if in_col == 4: # ai wins
-				pattern = [(i,j), (i+1,j),
-				(i+2,j), (i+3,j)]
+				pattern = [(i,j), (i+1,j), (i+2,j), (i+3,j)]
 				final = True
 				score = 1
 				return final, score, pattern
 
 			elif in_col == -4: # human wins
-				pattern = [(i,j), (i+1,j),
-				(i+2,j), (i+3,j)]
+				pattern = [(i,j), (i+1,j), (i+2,j), (i+3,j)]
 				final = True
 				score = -1
 				return final, score, pattern
 
-	# TODO: check for diagonal
+	# inverse diagonal
+	for i in [3,4,5]:
+		for j in [0,1,2,3]:
+			in_diag = board[i][j] + board[i-1][j+1]+ board[i-2][j+2] + board[i-3][j+3]
+			if in_diag == 4: # ai wins
+				pattern = [(i,j), (i-1,j+1), (i-2,j+2), (i-3,j+3)]
+				final = True
+				score = 1
+				return final, score, pattern
+
+			elif in_diag == -4: # ai wins
+				pattern = [(i,j), (i-1,j+1), (i-2,j+2), (i-3,j+3)]
+				final = True
+				score = -1
+				return final, score, pattern
+
+	# direct diagonal
+	for i in [0,1,2]:
+		for j in [0,1,2,3]:
+			in_diag = board[i][j] + board[i+1][j+1]+ board[i+2][j+2] + board[i+3][j+3]
+			if in_diag == 4: # ai wins
+				pattern = [(i,j), (i+1,j+1), (i+2,j+2), (i+3,j+3)]
+				final = True
+				score = 1
+				return final, score, pattern
+
+			elif in_diag == -4: # ai wins
+				pattern = [(i,j), (i+1,j+1), (i+2,j+2), (i+3,j+3)]
+				final = True
+				score = -1
+				return final, score, pattern
 
 	for i in range(NUM_ROWS):
 		for j in range(NUM_COLS):
@@ -163,7 +191,6 @@ def available_moves(board):
 					moves.append((NUM_ROWS - idx -1 , col))
 					break
 	return moves
-
 
 def minimax(board, user, DEPTH):
 	''' given board state return next best movement by exploring
@@ -263,7 +290,7 @@ def game_loop():
 					board2 = copy.deepcopy(board)
 					x, y = move
 					board2[x][y] = 1 # paint red
-					score = minimax(board=board2, user=True, DEPTH = 3)
+					score = minimax(board=board2, user=True, DEPTH = 1)
 					scores.append(score)
 
 				scores = np.array(scores)
