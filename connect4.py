@@ -41,28 +41,58 @@ STAT_FONT_SMALL = pygame.font.SysFont("comicsans", 30)
 
 # load background
 IMG_BG = pygame.image.load("background.jpg")
+IMG2_BG = pygame.image.load("background2.jpg")
 
 pygame.init()
 clock = pygame.time.Clock()
 screen = pygame.display.set_mode([WIN_WIDTH, WIN_HEIGHT])
 
+class Background:
+	VEL = 1
+	WIDTH = IMG_BG.get_width()
+	IMG = IMG_BG
+	IMG2 = IMG2_BG
+
+	def __init__(self):
+		self.x1 = 0
+		self.x2 = self.WIDTH
+
+	def move(self):
+		self.x1 -= self.VEL
+		self.x2 -= self.VEL
+
+		if self.x1 + self.WIDTH < 0:
+			self.x1 = self.x2 + self.WIDTH
+
+		if self.x2 + self.WIDTH < 0:
+			self.x2 = self.x1 + self.WIDTH
+
+	def draw(self, win):
+		win.blit(self.IMG, (self.x1, 0))
+		win.blit(self.IMG2, (self.x2, 0))
+
+
 def intro_menu():
 	clock.tick(30)
-
+	background = Background()
 	pygame.display.set_caption("Press RETURN/ENTER to start")
 	screen.fill(WHITE)
-	screen.blit(IMG_BG, [0, 0])
-	text = STAT_FONT.render("CONNECT 4", 1, (0,0,0))
-	screen.blit(text, (200, 100))
-
-	start_button = pygame.Rect(250, 175, 100, 50)
-	pygame.draw.rect(screen, GRAY, start_button)
-	text = STAT_FONT.render("Start", 1, (0,0,0))
-	screen.blit(text, (260, 185))
 
 	pygame.display.flip()
 	start = False
 	while not start:
+		time.sleep(0.05)
+		background.move()
+		background.draw(screen)
+
+		text = STAT_FONT.render("CONNECT 4", 1, (0,0,0))
+		screen.blit(text, (200, 100))
+
+		start_button = pygame.Rect(250, 175, 100, 50)
+		pygame.draw.rect(screen, GRAY, start_button)
+		text = STAT_FONT.render("Start", 1, (0,0,0))
+		screen.blit(text, (260, 185))
+
 		for event in pygame.event.get():
 			if event.type == pygame.QUIT:
 				pygame.quit()
@@ -75,6 +105,7 @@ def intro_menu():
 			elif event.type == pygame.MOUSEBUTTONDOWN:
 				if start_button.collidepoint(event.pos):
 					start = True
+		pygame.display.flip()
 	return start
 
 def draw_board(board):
@@ -367,8 +398,9 @@ def game_loop():
 
 def end_menu(score):
 	clock.tick(30)
+	background = Background()
 	screen.fill(WHITE)
-	screen.blit(IMG_BG, [0, 0])
+	# screen.blit(IMG_BG, [0, 0])
 	pygame.display.set_caption("Press RETURN/ENTER to start")
 
 	if score == -1: # Human
@@ -378,16 +410,19 @@ def end_menu(score):
 	else:
 		text = STAT_FONT.render("It's a Tie!", 1, (0,0,0))
 
-	screen.blit(text, (200, 100))
-
-	start_button = pygame.Rect(210, 155, 200, 50)
-	pygame.draw.rect(screen, GRAY, start_button)
-	text = STAT_FONT.render("Play again", 1, (0,0,0))
-	screen.blit(text, (220, 165))
-
 	pygame.display.flip()
 	start = False
 	while not start:
+		time.sleep(0.05)
+		background.move()
+		background.draw(screen)
+
+		screen.blit(text, (200, 100))
+		start_button = pygame.Rect(210, 155, 200, 50)
+		pygame.draw.rect(screen, GRAY, start_button)
+		text_restart = STAT_FONT.render("Play again", 1, (0,0,0))
+		screen.blit(text_restart, (220, 165))
+
 		for event in pygame.event.get():
 			if event.type == pygame.QUIT:
 				pygame.quit()
@@ -400,6 +435,8 @@ def end_menu(score):
 			elif event.type == pygame.MOUSEBUTTONDOWN:
 				if start_button.collidepoint(event.pos):
 					start = True
+					
+		pygame.display.flip()
 
 	return start
 
@@ -409,6 +446,4 @@ if __name__ == "__main__":
 		score = game_loop()
 		start = end_menu(score)
 		score_hist.append(score)
-
-
 
