@@ -8,6 +8,7 @@ import numpy as np
 import pygame
 import time
 import copy
+import random
 
 pygame.font.init()
 
@@ -27,12 +28,19 @@ HEIGHT = 50
 WIDTH = HEIGHT
 MARGIN = 5
 
+# store scores from previous games
+score_hist = []
+
 # window settings
 WIN_HEIGHT = 335
 WIN_WIDTH = 600
 
 # font for text
 STAT_FONT = pygame.font.SysFont("comicsans", 50)
+STAT_FONT_SMALL = pygame.font.SysFont("comicsans", 30)
+
+# load background
+IMG_BG = pygame.image.load("background.jpg")
 
 pygame.init()
 clock = pygame.time.Clock()
@@ -43,6 +51,7 @@ def intro_menu():
 
 	pygame.display.set_caption("Press RETURN/ENTER to start")
 	screen.fill(WHITE)
+	screen.blit(IMG_BG, [0, 0])
 	text = STAT_FONT.render("CONNECT 4", 1, (0,0,0))
 	screen.blit(text, (200, 100))
 
@@ -71,6 +80,22 @@ def intro_menu():
 def draw_board(board):
 
     screen.fill(GRAY) # fill background in grey
+
+    losses = len([x for x in score_hist if x==1])
+    ties = len([x for x in score_hist if x==0])
+    wins = len([x for x in score_hist if x==-1])
+
+    score_text = "Human: {}".format(wins)
+    text = STAT_FONT_SMALL.render(score_text, 1, (0,0,0))
+    screen.blit(text, (400, 10))
+
+    score_text = "AI: {}".format(losses)
+    text = STAT_FONT_SMALL.render(score_text, 1, (0,0,0))
+    screen.blit(text, (400, 50))
+
+    score_text = "Ties: {}".format(ties)
+    text = STAT_FONT_SMALL.render(score_text, 1, (0,0,0))
+    screen.blit(text, (400, 90))
 
     for row in range(NUM_ROWS):
         for col in range(NUM_COLS):
@@ -290,11 +315,15 @@ def game_loop():
 					board2 = copy.deepcopy(board)
 					x, y = move
 					board2[x][y] = 1 # paint red
-					score = minimax(board=board2, user=True, DEPTH = 1)
+					score = minimax(board=board2, user=True, DEPTH = 3)
 					scores.append(score)
 
-				scores = np.array(scores)
-				idx = np.argmax(scores)
+				# choose best option (max) if tie
+				# in best option pick random among best
+				max_score = max(scores)
+				indices = [idx for idx, x in enumerate(scores) if x == max_score]
+				idx = random.choice(indices)
+
 				x, y = next_moves[idx]
 				board[x][y] = 1
 				USER = True
@@ -339,6 +368,7 @@ def game_loop():
 def end_menu(score):
 	clock.tick(30)
 	screen.fill(WHITE)
+	screen.blit(IMG_BG, [0, 0])
 	pygame.display.set_caption("Press RETURN/ENTER to start")
 
 	if score == -1: # Human
@@ -378,3 +408,7 @@ if __name__ == "__main__":
 	while start:
 		score = game_loop()
 		start = end_menu(score)
+		score_hist.append(score)
+
+
+
